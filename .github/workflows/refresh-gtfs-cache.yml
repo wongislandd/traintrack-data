@@ -8,7 +8,7 @@ on:
 jobs:
   update-cache:
     runs-on: ubuntu-latest
-    environment: secrets
+    environment: supabase
     
     steps:
     - uses: actions/checkout@v4
