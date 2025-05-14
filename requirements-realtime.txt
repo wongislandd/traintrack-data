@@ -1,0 +1,4 @@
+gtfs-realtime-bindings==1.0.0
+requests==2.32.3
+supabase==2.15.1
+protobuf==6.30.2 
