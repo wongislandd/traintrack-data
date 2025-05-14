@@ -1,0 +1,56 @@
+name: Fetch latest GTFS Data
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  update-gtfs:
+    runs-on: ubuntu-latest
+    environment: secrets
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Restore GTFS cache
+      uses: actions/cache@v4
+      id: gtfs-cache-latest
+      with:
+        path: cache/
+        key: gtfs-cache-latest
+        restore-keys: |
+          gtfs-cache-latest
+        
+    - name: Cache GTFS data
+      uses: actions/cache@v4
+      id: gtfs-prev-cache
+      with:
+        path: cache/gtfs-data-latest.zip
+        key: gtfs-data-latest
+        restore-keys: |
+          gtfs-data-latest
+        
+    - name: Run GTFS update script
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: |
+        python update_gtfs.py
+      
+    - name: Cache updated GTFS data
+      uses: actions/cache@v4
+      with:
+        path: cache/gtfs-data-latest.zip
+        key: gtfs-data-latest

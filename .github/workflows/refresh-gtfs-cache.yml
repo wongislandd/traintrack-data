@@ -1,0 +1,36 @@
+name: Refresh GTFS Cache
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run at midnight UTC every day
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    environment: secrets
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run cache update script
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: |
+        python save_gtfs_cache.py
+    
+    - name: Cache updated GTFS data
+      uses: actions/cache@v4
+      with:
+        path: cache/
+        key: gtfs-cache-latest 

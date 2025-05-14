@@ -1,0 +1,38 @@
+name: Fetch Realtime Results
+
+on:
+  schedule:
+     - cron: '*/10 * * * *'  # Run every 10 minutes
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  parse-realtime:
+    runs-on: ubuntu-latest
+    environment: secrets
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-realtime.txt
+    
+    - name: Restore GTFS cache
+      uses: actions/cache@v4
+      id: gtfs-cache
+      with:
+        path: cache/
+        key: gtfs-cache-latest
+        restore-keys: |
+          gtfs-cache-latest
+    
+    - name: Run realtime parser
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: python gtfs_realtime_parser.py
