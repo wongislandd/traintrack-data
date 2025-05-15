@@ -28,6 +28,8 @@ jobs:
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       run: |
         python hard_reset.py
+        python update_routes_to_stops_index.py
+
         
     - name: Cache updated GTFS data
       uses: actions/cache@v4

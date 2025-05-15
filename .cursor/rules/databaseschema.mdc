@@ -1,0 +1,140 @@
+-- Agencies table
+create table if not exists agencies (
+  id text primary key,
+  agency_name text not null,
+  agency_url text not null,
+  agency_timezone text not null,
+  agency_lang text,
+  agency_phone text,
+  agency_fare_url text
+);
+
+-- Stops table
+create table if not exists stops (
+  id text primary key,
+  stop_code text,
+  stop_name text not null,
+  stop_desc text,
+  stop_lat double precision not null,
+  stop_lon double precision not null,
+  zone_id integer,
+  stop_url text,
+  location_type integer,
+  parent_station_id text
+);
+
+-- Calendars table
+create table if not exists calendars (
+  service_id text primary key,
+  monday boolean not null,
+  tuesday boolean not null,
+  wednesday boolean not null,
+  thursday boolean not null,
+  friday boolean not null,
+  saturday boolean not null,
+  sunday boolean not null,
+  start_date text not null,
+  end_date text not null
+);
+
+-- Routes table
+create table if not exists routes (
+  id text primary key,
+  agency_id text not null references agencies(id),
+  route_short_name text not null,
+  route_long_name text not null,
+  route_desc text,
+  route_type integer not null,
+  route_url text,
+  route_color text,
+  route_text_color text
+);
+
+-- Trips table
+create table if not exists trips (
+  id text primary key,
+  route_id text not null references routes(id),
+  service_id text not null references calendars(service_id),
+  trip_headsign text,
+  trip_short_name text,
+  direction_id integer,
+  block_id integer,
+  shape_id text,
+  wheelchair_accessible integer,
+  bikes_allowed integer
+);
+
+-- Stop times table
+create table if not exists stop_times (
+  trip_id text not null references trips(id),
+  arrival_time text not null,
+  departure_time text not null,
+  stop_id text not null references stops(id),
+  stop_sequence integer not null,
+  stop_headsign text,
+  pickup_type integer,
+  drop_off_type integer,
+  shape_dist_traveled double precision,
+  timepoint integer,
+  primary key (trip_id, stop_sequence)
+);
+
+-- Calendar dates table
+create table if not exists calendar_dates (
+  service_id text not null references calendars(service_id),
+  date text not null,
+  exception_type integer not null,
+  primary key (service_id, date)
+);
+
+-- Shapes table
+create table if not exists shapes (
+  shape_id text not null,
+  shape_pt_lat double precision not null,
+  shape_pt_lon double precision not null,
+  shape_pt_sequence integer not null,
+  shape_dist_traveled double precision,
+  primary key (shape_id, shape_pt_sequence)
+);
+
+-- Transfers table
+create table if not exists transfers (
+  from_stop_id text not null references stops(id),
+  to_stop_id text not null references stops(id),
+  transfer_type integer not null,
+  min_transfer_time integer,
+  primary key (from_stop_id, to_stop_id)
+);
+
+
+-- Trip updates table
+create table if not exists trip_updates (
+    trip_id text primary key references trips(id),
+    route_id text not null references routes(id),
+    direction_id integer not null,
+    timestamp bigint not null,
+    created_at timestamp with time zone default current_timestamp
+);
+
+-- Stop updates table
+create table if not exists stop_updates (
+    trip_id text not null references trip_updates(trip_id),
+    stop_id text not null references stops(id),
+    arrival_time bigint,
+    departure_time bigint,
+    created_at timestamp with time zone default current_timestamp,
+    primary key (trip_id, stop_id)
+);
+
+-- Add indexes for common queries
+create index if not exists idx_trip_updates_route_id on trip_updates(route_id);
+create index if not exists idx_stop_updates_stop_id on stop_updates(stop_id);
+create index if not exists idx_stop_updates_arrival_time on stop_updates(arrival_time);
+create index if not exists idx_stop_updates_departure_time on stop_updates(departure_time);
+
+
+create table if not exists routes_stops (
+  route_id text not null references routes(id),
+  stop_id text not null references stops(id),
+  primary key (route_id, stop_id)
+);
