@@ -1,8 +1,6 @@
 name: Fetch latest GTFS Data
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   # Allow manual triggering
   workflow_dispatch:
 
